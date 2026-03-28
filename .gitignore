@@ -10,3 +10,12 @@ build/
 dist/
 wheels/
 *.egg-info
+
+# data and database files
+
+storage/pdfs/*
+storage/thumbnails/*
+data/*
+
+
+
