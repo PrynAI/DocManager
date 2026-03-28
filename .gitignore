@@ -13,9 +13,9 @@ wheels/
 
 # data and database files
 
-storage/pdfs/*
-storage/thumbnails/*
-data/*
+storage/pdfs/
+storage/thumbnails/
+data/
 
 
 
