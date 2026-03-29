@@ -1,8 +1,8 @@
-Project Description
+### Project Description
 
 DocManager is a Streamlit-based PDF document manager for locally stored learning content. It helps users upload PDFs, store document metadata in SQLite, search by tags, lecture date, and full text, read documents page by page inside the app, and monitor basic usage analytics and reading progress.
 
-Problem We Are Solving
+### Problem We Are Solving
 
 When learning material is stored only as files on local folders, it becomes hard to:
 
@@ -13,9 +13,9 @@ When learning material is stored only as files on local folders, it becomes hard
 - work with scanned PDFs that do not already contain a text layer
 - understand how documents are being used inside the app
 
-Current App Scope
+### Current App Scope
 
-The current codebase supports:
+#### The current codebase supports:
 
 - uploading PDF documents only
 - saving uploaded files locally
@@ -32,7 +32,7 @@ The current codebase supports:
 - resetting analytics data
 - admin reset controls protected by `ADMIN_PASSWORD` in `.env`
 
-Technology Stack
+#### Technology Stack
 
 - Language: Python
 - UI Framework: Streamlit
@@ -43,11 +43,11 @@ Technology Stack
 - Environment Configuration: python-dotenv
 - Local Storage: filesystem-based storage under `storage/` and `data/`
 
-Complete System Design
+### Complete System Design
 
 The application follows a local-first design. The Streamlit app runs as the presentation layer, uploaded PDFs and generated assets are stored on disk, and structured data is stored in SQLite.
 
-System Overview
+#### System Overview
 
 ```mermaid
 flowchart TD
@@ -79,7 +79,7 @@ flowchart TD
     analytics_tab --> analytics
 ```
 
-Core Components
+#### Core Components
 
 - `app/main.py`: Streamlit entry point, session-state management, upload flow, search flow, reader mode, analytics UI, and admin reset controls
 - `core/services.py`: orchestration layer for document upload, indexing, search, and reindexing
@@ -93,14 +93,14 @@ Core Components
 - `db/database.py`: SQLite schema initialization and FTS setup
 - `db/repository.py`: persistence and search queries
 
-Storage Design
+#### Storage Design
 
 - PDF files are stored in `storage/pdfs/`
 - generated thumbnails are stored in `storage/thumbnails/`
 - page images for reader mode are stored in a folder derived from the PDF filename
 - SQLite database is stored under `data/`
 
-Database Design
+#### Database Design
 
 The schema is separated by responsibility:
 
@@ -110,9 +110,9 @@ The schema is separated by responsibility:
 - `page_visits`: page-level reading activity used for progress tracking
 - `app_visits`: app-level event tracking such as upload, search, open document, next page, previous page, and close reader
 
-Main Runtime Flows
+### Main Runtime Flows
 
-Upload Flow
+#### Upload Flow
 
 1. User uploads a PDF from the Streamlit UI.
 2. `DocumentService` saves the file through `FileManager`.
@@ -124,7 +124,7 @@ Upload Flow
 8. Document metadata is written to `documents`.
 9. Text chunks are written to `document_chunks`.
 
-Search Flow
+#### Search Flow
 
 1. User searches by tag, lecture date, or full text.
 2. Metadata-only search reads from `documents`.
@@ -133,7 +133,7 @@ Search Flow
 5. Results return the document, matched page, and snippet.
 6. Reader mode opens at the matched page for content-based search results.
 
-Reader And Analytics Flow
+#### Reader And Analytics Flow
 
 1. User opens a document from search results.
 2. The app loads page images from local storage.
@@ -142,16 +142,16 @@ Reader And Analytics Flow
 5. App actions are written to `app_visits`.
 6. The Analytics tab aggregates this data into usage charts and per-document progress.
 
-Admin Reset Flow
+#### Admin Reset Flow
 
 1. `.env` is loaded at app startup.
 2. If `ADMIN_PASSWORD` exists, admin reset controls are shown.
 3. On successful password confirmation, the app deletes the SQLite database and generated storage folders.
 4. Required directories are recreated and the database schema is initialized again.
 
-Architecture
+### Architecture
 
-The project uses a layered architecture:
+#### The project uses a layered architecture:
 
 - Presentation layer: `app/main.py`
 - Application layer: `core/services.py`, `core/analytics.py`
@@ -159,7 +159,7 @@ The project uses a layered architecture:
 - Infrastructure layer: `core/file_manager.py`, `core/thumbnail.py`, `core/reader.py`, `core/indexer.py`, `core/paths.py`
 - Persistence layer: `db/database.py`, `db/repository.py`
 
-Architecture Principles Used
+#### Architecture Principles Used
 
 - separation of concerns between UI, orchestration, infrastructure, and persistence
 - local-first design with no external backend dependency
@@ -168,7 +168,7 @@ Architecture Principles Used
 - session-state-driven UI flow in Streamlit
 - environment-based protection for destructive admin actions
 
-Current Limitations
+#### Current Limitations
 
 - The app only supports PDFs.
 - OCR quality depends on scan quality and handwriting clarity.
@@ -176,22 +176,22 @@ Current Limitations
 - Full-text search is implemented, but semantic search is not yet implemented.
 - Analytics are basic product-usage and progress metrics, not AI analytics.
 
-Future Work
+#### Future Work
 
 - semantic search over indexed document chunks
 - better search ranking and result grouping
 - improved OCR quality handling for difficult handwritten PDFs
 - richer analytics on reading behavior and document usage
 
-How To Run
+#### How To Run
 
-Prerequisites
+#### Prerequisites
 
 - a Python virtual environment for the project
 - project dependencies installed
 - Tesseract OCR installed if you want searchable text from scanned or image-based PDFs
 
-Install Dependencies
+#### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -203,7 +203,7 @@ If you are using `uv`, you can also run:
 uv sync
 ```
 
-Optional Environment Setup
+#### Optional Environment Setup
 
 To enable the admin reset controls, create a `.env` file in the project root:
 
@@ -226,7 +226,7 @@ $env:PATH = "C:\Program Files\Tesseract-OCR;" + $env:PATH
 $env:TESSDATA_PREFIX = "C:\Program Files\Tesseract-OCR\tessdata"
 ```
 
-Run The App
+#### Run The App
 
 On Windows:
 
@@ -235,7 +235,7 @@ On Windows:
 streamlit run app/main.py
 ```
 
-Notes
+#### Notes
 
 - printed or digital PDFs usually work better for full-text search than handwritten PDFs
 - if OCR is not available, scanned PDFs can still be uploaded, but searchable text may not be extracted
