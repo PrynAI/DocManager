@@ -100,6 +100,16 @@ class DocumentRepository:
 
         return [DocumentRecord(*row) for row in rows]
 
+    def get_all_documents(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM documents ORDER BY upload_date DESC, id DESC")
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [Document(*row) for row in rows]
+
     def search_documents(self, tag=None, date=None, content_query=None):
         if content_query:
             return self._search_document_content(tag=tag, date=date, content_query=content_query)
@@ -269,4 +279,3 @@ class DocumentRepository:
         return prefix + normalized_text[start:end] + suffix
 
         
-

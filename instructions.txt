@@ -1,4 +1,4 @@
-
+# winget install --id astral-sh.uv -e
 # uv init --python 3.14.3
 # uv sync
 # uv add -r requirements.txt

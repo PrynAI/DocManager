@@ -74,3 +74,6 @@ class DocumentService:
             reindexed_count += 1
 
         return reindexed_count
+
+    def get_all_documents(self):
+        return self.repo.get_all_documents()

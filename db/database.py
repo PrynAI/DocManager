@@ -51,6 +51,38 @@ def init_db():
     """
     )
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS page_visits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        document_id INTEGER NOT NULL,
+        page_number INTEGER NOT NULL,
+        timestamp TEXT NOT NULL,
+        FOREIGN KEY (document_id) REFERENCES documents(id)
+        )
+    """
+    )
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_page_visits_document_page
+        ON page_visits(document_id, page_number)
+    """
+    )
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS app_visits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        timestamp TEXT NOT NULL
+        )
+    """
+    )
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_app_visits_event_type
+        ON app_visits(event_type)
+    """
+    )
+
     try:
         cursor.execute("""
             CREATE VIRTUAL TABLE IF NOT EXISTS document_chunks_fts

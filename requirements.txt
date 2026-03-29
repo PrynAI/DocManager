@@ -1,2 +1,4 @@
 PyMuPDF==1.27.2.2
 streamlit==1.55.0
+pandas==2.3.3
+python-dotenv==1.2.2
