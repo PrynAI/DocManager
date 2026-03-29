@@ -1,3 +1,5 @@
+"""Streamlit entry point for upload, search, reader, analytics, and admin UI."""
+
 import os
 import shutil
 import sys
@@ -25,6 +27,8 @@ from core.paths import DB_PATH, PDF_STORAGE_DIR, THUMBNAIL_DIR, ensure_directory
 from core.services import DocumentService
 
 
+# Streamlit reruns the script on every interaction, so reader state and
+# previously fetched results need to live in session_state.
 if "selected_doc" not in st.session_state:
     st.session_state.selected_doc = None
 
@@ -45,6 +49,8 @@ init_db()
 
 service = DocumentService()
 analytics = AnalyticsService()
+# Backfill chunk records for documents uploaded before indexing existed or
+# before OCR was configured correctly.
 reindexed_count = service.reindex_unindexed_documents()
 
 st.set_page_config(page_title="DocManager", layout="wide")
@@ -78,6 +84,7 @@ if ADMIN_PASSWORD:
 
         if confirm_reset:
             if password_input == ADMIN_PASSWORD:
+                # This is a full local reset: database plus generated files.
                 if DB_PATH.exists():
                     DB_PATH.unlink()
 
@@ -176,6 +183,9 @@ with tabs[1]:
                     if result.snippet:
                         st.caption(result.snippet)
 
+                    # The same document can appear multiple times when several
+                    # chunks/pages match, so the button key must include more
+                    # than just doc.id to stay unique across the result list.
                     if st.button("Open", key=f"open_{doc.id}_{result.matched_page}_{result_index}"):
                         analytics.record_app_visit("open_document")
                         st.session_state.selected_doc = doc
@@ -192,6 +202,7 @@ with tabs[1]:
         doc = st.session_state.selected_doc
         st.subheader(f"📖 Reading: {doc.name}")
 
+        # Reader images are stored in a folder derived from the saved PDF path.
         image_dir = str(Path(doc.path).with_suffix(""))
 
         st.write("Image dir:", image_dir)
@@ -223,6 +234,7 @@ with tabs[1]:
 
             analytics.record_page_visit(doc.id, st.session_state.current_page + 1)
 
+            # Progress is based on unique pages viewed, not total button clicks.
             unique_pages = analytics.get_unique_pages_viewed(doc.id)
             progress = (unique_pages / doc.total_pages) * 100 if doc.total_pages else 0
 

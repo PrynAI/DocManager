@@ -1,3 +1,5 @@
+"""Repository layer for document storage and search queries."""
+
 import re
 import sqlite3
 
@@ -5,8 +7,10 @@ from db.database import get_connection
 from core.models import Document, DocumentRecord, SearchResult
 
 class DocumentRepository:
+    """Encapsulate all direct SQLite reads and writes for documents."""
     
     def add_document(self, doc: Document):
+        """Insert one document metadata row and return its database id."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -33,6 +37,7 @@ class DocumentRepository:
         return document_id
 
     def add_document_chunks(self, document_id, chunks):
+        """Insert all searchable text chunks belonging to one document."""
         if not chunks:
             return
 
@@ -59,6 +64,7 @@ class DocumentRepository:
         conn.close()
 
     def replace_document_chunks(self, document_id, chunks):
+        """Replace all saved chunks for a document during reindexing."""
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM document_chunks WHERE document_id = ?", (document_id,))
@@ -84,6 +90,7 @@ class DocumentRepository:
         conn.close()
 
     def get_documents_missing_chunks(self):
+        """Return documents that exist in metadata storage but are not indexed."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -101,6 +108,7 @@ class DocumentRepository:
         return [DocumentRecord(*row) for row in rows]
 
     def get_all_documents(self):
+        """Return every stored document ordered by most recent upload."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -111,20 +119,20 @@ class DocumentRepository:
         return [Document(*row) for row in rows]
 
     def search_documents(self, tag=None, date=None, content_query=None):
+        """Route to metadata search or content search depending on inputs."""
         if content_query:
             return self._search_document_content(tag=tag, date=date, content_query=content_query)
 
         return self._search_document_metadata(tag=tag, date=date)
 
     def _search_document_metadata(self, tag=None, date=None):
+        """Search only the document table using tag/date filters."""
         conn = get_connection()
         cursor = conn.cursor()
 
         query = "SELECT * FROM documents"
         conditions = []
         params = []
-
-        # WHERE , OR
 
         if tag:
             conditions.append("tags LIKE ?")
@@ -135,10 +143,8 @@ class DocumentRepository:
             params.append(date)
         
         if conditions:
-            # last_part_query = " OR ".join(conditions)
-            # query += " WHERE " 
-            # query+=last_part_query
-
+            # Metadata search keeps the current UI behavior: if both filters are
+            # provided, a match on either tag or date is returned.
             query += " WHERE " + " OR ".join(conditions)
         
         cursor.execute(query, params)
@@ -148,6 +154,7 @@ class DocumentRepository:
         return [SearchResult(document=Document(*row)) for row in rows]
 
     def _search_document_content(self, tag=None, date=None, content_query=None):
+        """Search indexed chunk text, falling back when FTS5 is unavailable."""
         fts_query = self._build_fts_query(content_query)
 
         if not fts_query:
@@ -159,6 +166,7 @@ class DocumentRepository:
             return self._search_with_like(tag=tag, date=date, content_query=content_query)
 
     def _search_with_fts(self, tag=None, date=None, fts_query=None):
+        """Use SQLite FTS5 to return ranked content matches."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -202,6 +210,7 @@ class DocumentRepository:
         return [self._build_search_result(row) for row in rows]
 
     def _search_with_like(self, tag=None, date=None, content_query=None):
+        """Fallback content search for SQLite builds without FTS5 support."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -249,6 +258,7 @@ class DocumentRepository:
         ]
 
     def _build_search_result(self, row):
+        """Convert a mixed SQL row into the UI-facing SearchResult model."""
         document = Document(*row[:9])
         return SearchResult(
             document=document,
@@ -257,10 +267,12 @@ class DocumentRepository:
         )
 
     def _build_fts_query(self, content_query):
+        """Normalize free text into a simple FTS token query."""
         terms = re.findall(r"\w+", content_query.lower())
         return " ".join(terms)
 
     def _build_snippet(self, text, content_query, radius=120):
+        """Return a short excerpt around the matched text for display."""
         normalized_text = " ".join(text.split())
         lower_text = normalized_text.lower()
         lower_query = content_query.lower()

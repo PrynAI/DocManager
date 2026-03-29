@@ -1,3 +1,5 @@
+"""Shared filesystem paths used by the document manager."""
+
 from pathlib import Path
 
 
@@ -10,5 +12,6 @@ DB_PATH = DATA_DIR / "documents.db"
 
 
 def ensure_directory(path: Path) -> Path:
+    """Create a directory when missing and return the same path."""
     path.mkdir(parents=True, exist_ok=True)
     return path

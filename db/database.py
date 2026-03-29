@@ -1,16 +1,20 @@
+"""SQLite schema creation and connection helpers."""
+
 import sqlite3
 
 from core.paths import DATA_DIR, DB_PATH, ensure_directory
 
 def get_connection():
+    """Return a connection to the app database, creating the data dir first."""
     ensure_directory(DATA_DIR)
     return sqlite3.connect(str(DB_PATH))
 
 def init_db():
+    """Create application tables, indexes, and FTS helpers when missing."""
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Document table - Schema
+    # Core document metadata.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,6 +30,7 @@ def init_db():
     """
     )
 
+    # Searchable text chunks extracted from document pages.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS document_chunks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +56,7 @@ def init_db():
     """
     )
 
+    # Reader progress analytics.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS page_visits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,6 +74,7 @@ def init_db():
     """
     )
 
+    # App-level clickstream style events.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS app_visits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +91,7 @@ def init_db():
     )
 
     try:
+        # FTS5 accelerates keyword search over extracted chunk text.
         cursor.execute("""
             CREATE VIRTUAL TABLE IF NOT EXISTS document_chunks_fts
             USING fts5(chunk_text, content='document_chunks', content_rowid='id')
@@ -130,5 +138,4 @@ def init_db():
         pass
 
     conn.commit()
-    print("DB operation successfull.")
     conn.close()

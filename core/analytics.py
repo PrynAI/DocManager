@@ -1,10 +1,15 @@
+"""Analytics helpers for app events and reader progress."""
+
 from datetime import datetime
 
 from db.database import get_connection
 
 
 class AnalyticsService:
+    """Record and query lightweight usage analytics in SQLite."""
+
     def record_page_visit(self, document_id, page_number):
+        """Store one reader page-visit event."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -17,6 +22,7 @@ class AnalyticsService:
         conn.close()
 
     def get_unique_pages_viewed(self, document_id):
+        """Return how many distinct pages were viewed for a document."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -32,6 +38,7 @@ class AnalyticsService:
         return result if result else 0
 
     def record_app_visit(self, event_type):
+        """Store one app-level event such as upload or search."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -44,6 +51,7 @@ class AnalyticsService:
         conn.close()
 
     def get_app_visits(self):
+        """Return aggregated app event counts for the analytics dashboard."""
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -60,6 +68,7 @@ class AnalyticsService:
         return data
 
     def reset_analytics(self):
+        """Clear analytics tables without deleting documents or search data."""
         conn = get_connection()
         cursor = conn.cursor()
 

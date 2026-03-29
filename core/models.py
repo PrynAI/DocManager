@@ -1,7 +1,11 @@
+"""Simple models shared across services, repositories, and the UI."""
+
 from typing import Optional
 
 
 class Document:
+    """Represents one uploaded PDF and its stored metadata."""
+
     def __init__(
         self,
         id,
@@ -26,10 +30,13 @@ class Document:
 
 
 class DocumentRecord(Document):
+    """Concrete database row type kept separate for future specialization."""
     pass
 
 
 class DocumentChunk:
+    """One searchable chunk of text extracted from a PDF page."""
+
     def __init__(self, page_number, chunk_index, text, word_count):
         self.page_number = page_number
         self.chunk_index = chunk_index
@@ -38,6 +45,8 @@ class DocumentChunk:
 
 
 class SearchResult:
+    """Search output containing the document plus match-specific context."""
+
     def __init__(
         self,
         document: Document,

@@ -49,28 +49,34 @@ The application follows a local-first design. The Streamlit app runs as the pres
 
 System Overview
 
-```text
-User
-  |
-  v
-Streamlit UI (app/main.py)
-  |
-  v
-DocumentService / AnalyticsService
-  |
-  +--> FileManager ------> storage/pdfs/
-  +--> ThumbnailGenerator -> storage/thumbnails/
-  +--> PDFReader ---------> page images folder per PDF
-  +--> DocumentIndexer ---> extracted text chunks
-  |
-  v
-DocumentRepository / SQLite
-  |
-  +--> documents
-  +--> document_chunks
-  +--> document_chunks_fts
-  +--> page_visits
-  +--> app_visits
+```mermaid
+flowchart TD
+    user[User] --> ui[Streamlit UI<br/>app/main.py]
+
+    ui --> service[DocumentService<br/>core/services.py]
+    ui --> analytics[AnalyticsService<br/>core/analytics.py]
+
+    service --> filemgr[FileManager]
+    service --> thumb[ThumbnailGenerator]
+    service --> reader[PDFReader]
+    service --> indexer[DocumentIndexer]
+    service --> repo[DocumentRepository]
+
+    filemgr --> pdfs[(storage/pdfs)]
+    thumb --> thumbs[(storage/thumbnails)]
+    reader --> pages[(page image folders)]
+    indexer --> chunks[DocumentChunk objects]
+    chunks --> repo
+
+    repo --> docs[(documents)]
+    repo --> chunk_table[(document_chunks)]
+    repo --> fts[(document_chunks_fts)]
+
+    analytics --> page_visits[(page_visits)]
+    analytics --> app_visits[(app_visits)]
+
+    ui --> analytics_tab[Analytics Tab]
+    analytics_tab --> analytics
 ```
 
 Core Components
@@ -188,7 +194,7 @@ Prerequisites
 Install Dependencies
 
 ```bash
-uv add -r requirements.txt
+pip install -r requirements.txt
 ```
 
 If you are using `uv`, you can also run:
